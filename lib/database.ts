@@ -148,8 +148,8 @@ export async function getExpensesByCategory(userId: string, startDate?: string, 
 
   // Agrupar por categoria
   const grouped = (data || []).reduce((acc, expense) => {
-    const categoryName = expense.category?.name || 'Sem Categoria';
-    const categoryColor = expense.category?.color || '#64748B';
+    const categoryName = expense.category?.[0]?.name || 'Sem Categoria';
+    const categoryColor = expense.category?.[0]?.color || '#64748B';
     
     if (!acc[categoryName]) {
       acc[categoryName] = {
