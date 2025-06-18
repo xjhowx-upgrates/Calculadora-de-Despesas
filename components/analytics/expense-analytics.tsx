@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { useTheme } from 'next-themes';
 import { TrendingUp, TrendingDown, DollarSign, Calendar, BarChart3 } from 'lucide-react';
 import { Database } from '@/lib/supabase';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
@@ -73,7 +74,35 @@ export function ExpenseAnalytics({ expenses }: ExpenseAnalyticsProps) {
   const lastMonthTotal = lastMonth.reduce((sum, expense) => sum + expense.amount, 0);
   
   const monthlyChange = lastMonthTotal > 0 ? ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
-  const averageExpense = expenses.length > 0 ? totalAmount / expenses.length : 0;
+    const averageExpense = expenses.length > 0 ? totalAmount / expenses.length : 0;
+
+  const { resolvedTheme } = useTheme();
+  const tickColor = resolvedTheme === 'dark' ? '#94a3b8' : '#64748b';
+  const strokeColor = resolvedTheme === 'dark' ? '#1e293b' : '#e2e8f0';
+  const lineColor = resolvedTheme === 'dark' ? '#38bdf8' : '#2563eb';
+
+  interface CustomLabelProps {
+    cx: number;
+    cy: number;
+    midAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    percent: number;
+  }
+
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: CustomLabelProps) => {
+    if (percent < 0.05) return null;
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.6;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    return (
+      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={12}>
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -83,8 +112,8 @@ export function ExpenseAnalytics({ expenses }: ExpenseAnalyticsProps) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Gasto</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-muted-foreground">Total Gasto</p>
+                <p className="text-2xl font-bold text-foreground">
                   R$ {totalAmount.toFixed(2).replace('.', ',')}
                 </p>
               </div>
@@ -99,8 +128,8 @@ export function ExpenseAnalytics({ expenses }: ExpenseAnalyticsProps) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Este Mês</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-muted-foreground">Este Mês</p>
+                <p className="text-2xl font-bold text-foreground">
                   R$ {currentMonthTotal.toFixed(2).replace('.', ',')}
                 </p>
                 <div className="flex items-center mt-1">
@@ -125,8 +154,8 @@ export function ExpenseAnalytics({ expenses }: ExpenseAnalyticsProps) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Gasto Médio</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm font-medium text-muted-foreground">Gasto Médio</p>
+                <p className="text-2xl font-bold text-foreground">
                   R$ {averageExpense.toFixed(2).replace('.', ',')}
                 </p>
               </div>
@@ -141,8 +170,8 @@ export function ExpenseAnalytics({ expenses }: ExpenseAnalyticsProps) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total de Despesas</p>
-                <p className="text-2xl font-bold text-gray-900">{expenses.length}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total de Despesas</p>
+                <p className="text-2xl font-bold text-foreground">{expenses.length}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
                 <BarChart3 className="h-6 w-6 text-white" />
@@ -171,14 +200,28 @@ export function ExpenseAnalytics({ expenses }: ExpenseAnalyticsProps) {
                     outerRadius={100}
                     fill="#8884d8"
                     dataKey="amount"
-                    label={({ category, percent }) => `${category} ${(percent * 100).toFixed(1)}%`}
+                    labelLine={false}
+                    label={renderCustomizedLabel}
                   >
                     {categoryChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: number) => [`R$ ${value.toFixed(2).replace('.', ',')}`, 'Valor']}
+                    contentStyle={{
+                      backgroundColor: resolvedTheme === 'dark' ? '#0f172a' : '#ffffff',
+                      borderColor: strokeColor,
+                    }}
+                    formatter={(value: unknown, name: string, props: { payload?: { category: string } }) => {
+                      const categoryName = props.payload?.category || name;
+                      if (typeof value === 'number') {
+                        return [`R$ ${value.toFixed(2).replace('.', ',')}`, categoryName];
+                      }
+                      return [`${value}`, categoryName];
+                    }}
+                    itemStyle={{ color: tickColor }}
+                    labelStyle={{ display: 'none' }}
+                    cursor={{ fill: resolvedTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -196,19 +239,19 @@ export function ExpenseAnalytics({ expenses }: ExpenseAnalyticsProps) {
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={sortedMonthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
+                  <CartesianGrid stroke={strokeColor} strokeDasharray="3 3" />
+                  <XAxis dataKey="month" tick={{ fill: tickColor }} stroke={tickColor} fontSize={12} />
+                  <YAxis tick={{ fill: tickColor }} stroke={tickColor} fontSize={12} tickFormatter={(value) => `R$${value}`} />
                   <Tooltip
-                    formatter={(value: number) => [`R$ ${value.toFixed(2).replace('.', ',')}`, 'Gasto']}
+                    contentStyle={{
+                      backgroundColor: resolvedTheme === 'dark' ? '#0f172a' : '#ffffff',
+                      borderColor: strokeColor,
+                    }}
+                    labelStyle={{ color: tickColor }}
+                    itemStyle={{ color: lineColor }}
+                    formatter={(value: number) => [`R$ ${value.toFixed(2).replace('.', ',')}`, 'Valor']}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="amount"
-                    stroke="#10B981"
-                    strokeWidth={3}
-                    dot={{ fill: '#10B981', strokeWidth: 2, r: 6 }}
-                  />
+                  <Line type="monotone" dataKey="amount" stroke={lineColor} strokeWidth={2} activeDot={{ r: 8 }} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>

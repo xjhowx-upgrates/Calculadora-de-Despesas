@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Edit2, Search, Filter, Receipt } from 'lucide-react';
+import { Trash2, Edit2, Search, Filter, Receipt, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { deleteExpense } from '@/lib/database';
@@ -23,6 +23,8 @@ interface ExpenseListProps {
 }
 
 export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
+  // Garante que expenses sempre seja um array
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [loading, setLoading] = useState<string | null>(null);
@@ -30,15 +32,15 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
   // Obter categorias únicas das despesas - corrigindo o erro de tipo
   const categories = Array.from(
     new Set(
-      expenses
-        .map(expense => expense.category?.name)
+      safeExpenses
+        .map(expense => expense?.category?.name)
         .filter((name): name is string => Boolean(name))
     )
   );
 
-  const filteredExpenses = expenses.filter((expense) => {
-    const matchesSearch = expense.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = !categoryFilter || expense.category?.name === categoryFilter;
+  const filteredExpenses = safeExpenses.filter((expense) => {
+    const matchesSearch = expense?.description?.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = !categoryFilter || expense?.category?.name === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -55,7 +57,7 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
     }
   };
 
-  const totalAmount = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalAmount = filteredExpenses.reduce((sum, expense) => sum + (expense?.amount || 0), 0);
 
   return (
     <Card className="w-full">
@@ -101,9 +103,9 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
         </div>
 
         {/* Summary */}
-        <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg p-4 border border-emerald-200">
+        <div className="bg-background rounded-lg p-4 border">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-muted-foreground">
               Total ({filteredExpenses.length} despesa{filteredExpenses.length !== 1 ? 's' : ''})
             </span>
             <span className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
@@ -126,11 +128,11 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
             filteredExpenses.map((expense) => (
               <div
                 key={expense.id}
-                className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
+                className="flex items-center justify-between p-4 bg-card border rounded-lg hover:shadow-md transition-shadow"
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-gray-900">{expense.description}</h3>
+                    <h3 className="font-semibold text-foreground">{expense.description}</h3>
                     {expense.category && (
                       <Badge 
                         className="text-white border-0"
@@ -140,16 +142,16 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     {format(new Date(expense.date), 'PPP', { locale: ptBR })}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-lg font-bold text-gray-900">
+                  <span className="text-lg font-bold text-foreground">
                     R$ {expense.amount.toFixed(2).replace('.', ',')}
                   </span>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => toast.info('Funcionalidade em breve!')} disabled>
                       <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button
@@ -159,7 +161,7 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
                       disabled={loading === expense.id}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {loading === expense.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
