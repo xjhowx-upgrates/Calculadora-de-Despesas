@@ -26,7 +26,7 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
   // Garante que expenses sempre seja um array
   const safeExpenses = Array.isArray(expenses) ? expenses : [];
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [loading, setLoading] = useState<string | null>(null);
 
   // Obter categorias únicas das despesas - corrigindo o erro de tipo
@@ -40,7 +40,7 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
 
   const filteredExpenses = safeExpenses.filter((expense) => {
     const matchesSearch = expense?.description?.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = !categoryFilter || expense?.category?.name === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || expense?.category?.name === categoryFilter;
     return matchesSearch && matchesCategory;
   });
 
@@ -91,7 +91,7 @@ export function ExpenseList({ expenses, onExpenseDeleted }: ExpenseListProps) {
                 <SelectValue placeholder="Todas as categorias" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas as categorias</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
