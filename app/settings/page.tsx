@@ -45,4 +45,4 @@ function SettingsPage() {
   );
 }
 
-export default withAuth(SettingsPage); 
+export default withAuth(SettingsPage);
