@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExpenseForm } from '@/components/expenses/expense-form';
 import { ExpenseList } from '@/components/expenses/expense-list';
 import { ExpenseAnalytics } from '@/components/analytics/expense-analytics';
+import { BudgetManager } from '@/components/budgets/budget-manager';
 import { Header } from '@/components/layout/header';
 import { getExpenses, addExpense, getCategories } from '@/lib/database';
 import { useAuthContext } from '@/contexts/auth-context';
@@ -20,7 +21,8 @@ type Expense = Database['public']['Tables']['expenses']['Row'] & {
 export function Dashboard() {
   const { user } = useAuthContext();
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
   // Adiciona despesas de exemplo se o usuário não tiver nenhuma
   const addExampleExpenses = async () => {
@@ -99,7 +101,7 @@ export function Dashboard() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => toast.info('Funcionalidade em breve!')}>Exportar CSV</Button>
-            <Button variant="outline" onClick={() => toast.info('Funcionalidade em breve!')}>Orçamento Mensal</Button>
+            <Button variant="outline" onClick={() => setIsBudgetModalOpen(true)}>Orçamento Mensal</Button>
           </div>
         </div>
 
@@ -134,6 +136,8 @@ export function Dashboard() {
           </TabsContent>
         </Tabs>
       </main>
+
+      <BudgetManager isOpen={isBudgetModalOpen} onOpenChange={setIsBudgetModalOpen} />
     </div>
   );
 }

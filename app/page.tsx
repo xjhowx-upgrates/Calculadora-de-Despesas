@@ -28,7 +28,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-gray-50 to-blue-100 dark:from-gray-900 dark:to-blue-950">
           <div className="container px-4 md:px-6 text-center">
-            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-primary-foreground">Controle suas finanças com inteligência</h1>
+            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-gray-900 dark:text-gray-100">Controle suas finanças com inteligência</h1>
             <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl my-6">Nossa plataforma oferece as ferramentas que você precisa para gerenciar suas despesas, visualizar seus gastos e alcançar suas metas financeiras.</p>
             <Link href="/dashboard">
               <Button size="lg">Comece agora, é grátis</Button>
@@ -70,6 +70,9 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Calculadora de Despesas. Todos os direitos reservados.</p>
+        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+          <p className="text-xs text-muted-foreground">Desenvolvido com ❤️ por XJHOWX</p>
+        </nav>
       </footer>
     </div>
   );
